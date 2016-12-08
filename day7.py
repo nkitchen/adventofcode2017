@@ -14,8 +14,34 @@ def tls(addr):
 
    return False
 
+abaRe = re.compile( r"((\w)\w\2)" )
+
+def ssl(addr):
+   supers = re.findall( r"\w+(?=\[|$)", addr )
+   hypers = re.findall( r"(?<=\[)\w+(?=\])", addr )
+
+   for s in supers:
+      def _hits():
+         i = 0
+         while i < len(s):
+            m = abaRe.search( s, i )
+            if m is None:
+               return
+            yield m.group(0)
+            i = m.start() + 1
+
+      for aba in _hits():
+         if aba[0] == aba[1]:
+            continue
+
+         bab = aba[1] + aba[0] + aba[1]
+         for h in hypers:
+            if bab in h:
+               return True
+
+   return False
+
 for line in fileinput.input():
     addr = line.strip()
-    abba = tls(addr)
-    if abba:
-        print abba, addr
+    if ssl(addr):
+        print addr
