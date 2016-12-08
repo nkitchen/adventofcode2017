@@ -20,7 +20,17 @@ for line in fileinput.input():
 
     checksum = m.group(3)
     checksumExp = ''.join(i[0] for i in byFreq[:5])
-    if checksum == checksumExp:
-        sectorSum += int(m.group(2))
+    if checksum != checksumExp:
+        continue
 
-print sectorSum
+    sector = int(m.group(2))
+
+    def _decrypt(c):
+        if not c.isalpha():
+            return " "
+
+        x = ord(c) - ord("a")
+        y = (x + sector) % 26
+        return chr(y + ord("a"))
+
+    print "".join(map(_decrypt, m.group(1))), sector
