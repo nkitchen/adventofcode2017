@@ -30,5 +30,6 @@ for line in fileinput.input(sys.argv[3:]):
         screen[y, ...] = np.roll(screen[y, ...], d)
         continue
 
-print screen
+for row in screen:
+   print "".join(".#"[int(b)] for b in row)
 print np.sum(screen)
