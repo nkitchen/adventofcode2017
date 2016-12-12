@@ -91,4 +91,8 @@ func main() {
 			fmt.Printf("Bot %d compared: %d %d\n", b, p[0], p[1])
 		}
 	}
+
+	for i, a := range outputs {
+		fmt.Printf("Output %d: %v\n", i, a)
+	}
 }
