@@ -147,8 +147,8 @@ func main() {
 		"fourth": 3,
 	}
 
-	chipRe := regexp.MustCompile(`a (\S+)-compatible microchip`)
-	genRe := regexp.MustCompile(`a (\S+) generator`)
+	chipRe := regexp.MustCompile(`an? (\S+)-compatible microchip`)
+	genRe := regexp.MustCompile(`an? (\S+) generator`)
 
 	floorContents := [4]itemSet{}
 
@@ -192,6 +192,17 @@ func main() {
 	}
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
+	}
+
+	chips := itemSet(0)
+	gens := itemSet(0)
+	mask := itemSet(uint64(^uint32(0)))
+	for _, floor := range floorContents {
+		chips ^= floor & mask
+		gens ^= floor >> 32
+	}
+	if chips != gens {
+		log.Fatal("Mismatch between microchips and generators")
 	}
 
 	s0 := state{floorContents, 0, 0, -1}
