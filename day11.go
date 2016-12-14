@@ -98,6 +98,15 @@ func (s state) String() string {
 	                   d, e, f)
 }
 
+func (s *state) finished() bool {
+	for i := 0 ; i < len(s.floorContents) - 1; i++ {
+		if s.floorContents[i] != 0 {
+			return false
+		}
+	}
+	return true
+}
+
 type stateQueue []*state
 
 func (q stateQueue) Len() int {
@@ -107,7 +116,9 @@ func (q stateQueue) Len() int {
 func (q stateQueue) Less(i, j int) bool {
 	s := q[i]
 	t := q[j]
-	return s.estimatedStepsRemaining() < t.estimatedStepsRemaining()
+	sd := s.stepsSoFar + s.estimatedStepsRemaining()
+	td := t.stepsSoFar + t.estimatedStepsRemaining()
+	return sd < td
 }
 
 func (q stateQueue) Swap(i, j int) {
@@ -127,8 +138,6 @@ func (q *stateQueue) Pop() interface{} {
 }
 
 var elementId = map[string]uint{}
-
-var debug = false
 
 func main() {
 	floorIndex := map[string]int{
@@ -193,11 +202,11 @@ func main() {
 
 	for len(queue) > 0 {
 		s := heap.Pop(&queue).(*state)
-		fmt.Println(s)
 		enc := encoded(s.floorContents, s.elevatorFloor)
 		visited[enc] = s
+		//fmt.Println(s)
 
-		if n := s.estimatedStepsRemaining(); n == 0 {
+		if s.finished() {
 			fmt.Println(s.stepsSoFar)
 			break
 		}
@@ -223,47 +232,23 @@ func main() {
 		})
 
 		for _, carried := range combos {
-			fmt.Println("carried", carried)
 			itemsLeft := curItems &^ carried
-			fmt.Println("itemsLeft", itemsLeft)
 			if !itemsLeft.safe() {
 				continue
 			}
 
 			for _, f := range nextFloors {
-				fmt.Println("f", f)
-				if (s.elevatorFloor == 2 && f == 1 && carried == itemSet(1)) {
-					fmt.Println("HERE!")
-					fmt.Println(s)
-					debug = true
-				}
-
 				nextItems := s.floorContents[f] | carried
-				fmt.Println("nextItems", nextItems)
-				if debug {
-					fmt.Println(nextItems)
-				}
 				if !nextItems.safe() {
 					continue
 				}
 
-				// XXX No expansion of {[0/11 0/0 11/0 0/0] 0 4 4 =8}
-				// to {[0/0 0/11 11/0 0/0] ...}
 				floorContents := s.floorContents
 				floorContents[s.elevatorFloor] = itemsLeft
 				floorContents[f] = nextItems
-				fmt.Println("expanded", floorContents)
 
 				enc := encoded(floorContents, f)
 				if visited[enc] != nil {
-					if fmt.Sprint(floorContents) == "[0/0 0/11 11/0 0/0]" {
-						fmt.Println("already visited")
-						fmt.Printf("enc %x\n", enc)
-						fmt.Println("visited:")
-						for e, t := range visited {
-							fmt.Printf("%x %v\n", e, t)
-						}
-					}
 					continue
 				}
 
@@ -273,8 +258,8 @@ func main() {
 					stepsSoFar: 1 + s.stepsSoFar,
 					stepsToGo: -1,
 				}
-				fmt.Println("Pushed", sn)
 				heap.Push(&queue, &sn)
+				//fmt.Println("pushed", sn)
 			}
 		}
 	}
