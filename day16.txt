@@ -1,0 +1,26 @@
+Length to fill: n
+
+n == 2**k * m, where m is odd
+
+Relationship between data and checksum?
+
+b=10000, n=20
+n == 2**2 * 5
+
+seed=10000 len=20
+
+10000
+
+n=5
+10000011110
+pivots=5
+
+n=11
+10000011110010000111110
+...................
+pivots=5 11
+
+i=18
+whPiv=1 p=11
+i=4 inv=1
+whPiv=0 p=5
