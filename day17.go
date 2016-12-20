@@ -67,12 +67,13 @@ func main() {
 
 	queue := stateQueue([]*state{&s0})
 
+    maxLen := -1
 	for len(queue) > 0 {
 		s := heap.Pop(&queue).(*state)
 
 		if s.x == W-1 && s.y == H-1 {
-			fmt.Println(s.path)
-			break
+			maxLen = len(s.path)
+			continue
 		}
 
 		h := md5.New()
@@ -107,4 +108,6 @@ func main() {
 			heap.Push(&queue, &sn)
 		}
 	}
+
+	fmt.Println(maxLen)
 }
