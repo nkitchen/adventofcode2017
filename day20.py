@@ -8,31 +8,27 @@ if M:
 else:
    M = 2 ** 32
 
-blocks = []
+
+endpoints = []
 
 for line in fileinput.input():
    m = re.search(r"(\d+)-(\d+)", line)
    if m:
       a = int(m.group(1))
       b = int(m.group(2))
-      blocks.append((a, b))
+      endpoints.append([a, 1])
+      endpoints.append([b + 1, -1])
 
-blocks.sort()
+nBlocks = 0
+nAddrs = 0
+curBlockStart = None
 
-n = 0
-a = blocks[0][0]
-if a > 0 :
-   n += a
+endpoints.sort()
+for x, d in endpoints:
+   nBlocks += d
+   if d > 0 and nBlocks == 1 :
+      curBlockStart = x
+   elif nBlocks == 0 :
+      nAddrs += x - curBlockStart
 
-for i in xrange(len(blocks) - 1):
-   b = blocks[i][1]
-   a = blocks[i + 1][0]
-   if b + 1 < a :
-      n += a - (b + 1)
-
-b = blocks[-1][1]
-a = M
-if b + 1 < a :
-   n += a - (b + 1)
-
-print n
+print M - nAddrs
