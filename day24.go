@@ -44,6 +44,22 @@ func abs(x int) int {
 	return x
 }
 
+func min(x, y int) int {
+	if x < y {
+		return x
+	} else {
+		return y
+	}
+}
+
+func max(x, y int) int {
+	if x > y {
+		return x
+	} else {
+		return y
+	}
+}
+
 func newNode(p pos, visited int, distTo int) node {
 	v := node{state{p, visited}, distTo, 0}
 
@@ -57,43 +73,45 @@ func newNode(p pos, visited int, distTo int) node {
 	xMax := -1
 	yMin := len(ductMap)
 	yMax := -1
+	toVisit := 0
 
-	for loc := 0; loc < numLocs; loc++ {
+	for loc := 1; loc < numLocs; loc++ {
 		if v.Visited(loc) {
 			continue
 		}
+		toVisit++
 		p := locPos[loc]
-		if p.x < xMin {
-			xMin = p.x
-		}
-		if p.x > xMax {
-			xMax = p.x
-		}
-		if p.y < yMin {
-			yMin = p.y
-		}
-		if p.y > yMax {
-			yMax = p.y
-		}
+		xMin = min(xMin, p.x)
+		xMax = max(xMax, p.x)
+		yMin = min(yMin, p.y)
+		yMax = max(yMax, p.y)
 	}
 
-	// One edge length in each dimension,
-	// plus the distance to the nearest edge
-	e := xMax - xMin + yMax - yMin
-	dxMin := abs(v.x - xMin)
-	dxMax := abs(xMax - v.x)
-	if dxMin < dxMax {
-		e += dxMin
+	e := 0
+	p0 := locPos[0]
+	if toVisit > 0 {
+		// One edge length in each dimension,
+		// plus the distance to the nearest edge
+		e += xMax - xMin + yMax - yMin
+		dxMin := abs(v.x - xMin)
+		dxMax := abs(xMax - v.x)
+		e += min(dxMin, dxMax)
+		dyMin := abs(v.y - yMin)
+		dyMax := abs(yMax - v.y)
+		e += min(dyMin, dyMax)
+
+		// ...plus distance from the bounding box to location 0,
+		// if it's outside the box.
+		if p0.x < xMin || p0.x > xMax {
+			e += min(xMin - p0.x, p0.x - xMax)
+		}
+		if p0.y < yMin || p0.y > yMax {
+			e += min(yMin - p0.y, p0.y - yMax)
+		}
 	} else {
-		e += dxMax
+		e += abs(v.x - p0.x) + abs(v.y - p0.y)
 	}
-	dyMin := abs(v.y - yMin)
-	dyMax := abs(yMax - v.y)
-	if dyMin < dyMax {
-		e += dyMin
-	} else {
-		e += dyMax
-	}
+
 	v.estFrom = e
 
 	return v
@@ -104,7 +122,8 @@ func (v node) Visited(loc int) bool {
 }
 
 func (v node) IsGoal() bool {
-	return v.visited == (1 << uint(numLocs)) - 1
+	return v.visited == (1 << uint(numLocs)) - 1 &&
+		v.pos == locPos[0]
 }
 
 func (v node) DistanceTo() int {
